@@ -2,10 +2,10 @@
 
 # 显示头部信息
 echo "=============================================="
-echo "         M  U  L  T  I  G  R  O  W           "
-echo "           T  E  S  T  N  E  T              "
-echo "        =============================       "
-echo "           By Share It Hub                  "
+echo "         M  U  L  T  I  G  R  O  W            "
+echo "           T  E  S  T  N  E  T                "
+echo "        =============================         "
+echo "                  By Hien                     "
 echo "=============================================="
 echo "  欢迎使用 MultiGrow 测试网安装程序  "
 echo "  让我们开始安装过程！"
