@@ -167,4 +167,3 @@ else
 fi
 
 echo "安装成功完成！"
-echo "Telegram 频道： https://t.me/SHAREITHUB_COM"
