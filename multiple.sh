@@ -84,7 +84,7 @@ get_user_input() {
         read BANDWIDTH_DOWNLOAD
         echo "请输入您的上传带宽（单位：Mbps）："
         read BANDWIDTH_UPLOAD
-        echo "请输入您的存储（单位：GB）："
+        echo "请输入您的存储（单位：MB）："
         read STORAGE
 
         # 校验输入是否为数字
