@@ -1,44 +1,6 @@
 #!/bin/bash
 
-# 显示头部信息
-echo "=============================================="
-echo "         M  U  L  T  I  G  R  O  W            "
-echo "           T  E  S  T  N  E  T                "
-echo "        =============================         "
-echo "                  By Hien                     "
-echo "                 X/推特：@Hienkkkk             "
-echo "=============================================="
-echo ""
-echo "=============================================="
-echo "     要检查节点的状态，您可以使用以下命令：    "
-echo "=============================================="
-echo ""
-echo "1. 检查节点进程是否正在运行："
-echo "   ps aux | grep multiple-node"
-echo ""
-echo "2. 或者，使用 pgrep 查找进程 ID："
-echo "   pgrep -af multiple-node"
-echo ""
-echo "3. 如果您使用的是 systemd（作为服务），可以运行："
-echo "   systemctl status multiple-node.service"
-echo ""
-echo "4. 要查看节点的日志，检查 output.log 文件："
-echo "   tail -f output.log"
-echo ""
-echo "=============================================="
-echo "  如果您需要进一步的帮助，随时可以提问！ "
-echo "=============================================="
-echo ""
-
-# 检查命令是否成功执行
-check_command() {
-    if [ $? -ne 0 ]; then
-        echo "命令执行失败: $1"
-        exit 1
-    fi
-}
-
-# 停止节点并清理旧文件的函数
+# 清理旧的 multiple-node 进程和文件
 clean_up() {
     echo "正在停止节点并清理进程..."
     
@@ -63,105 +25,41 @@ clean_up() {
     echo "节点已停止，旧文件已删除。"
 }
 
-# 获取并校验用户输入
-get_user_input() {
-    while true; do
-        echo "请输入您的账户 ID 和 PIN 来绑定您的账户："
-        read -p "账户 ID: " IDENTIFIER
-        read -p "设置您的 PIN: " PIN
-
-        # 校验账户 ID 和 PIN 是否为空
-        if [[ -z "$IDENTIFIER" || -z "$PIN" ]]; then
-            echo "账户 ID 和 PIN 不能为空，请重新输入。"
-        else
-            break
-        fi
-    done
-
-    # 获取带宽和存储的输入并校验
-    while true; do
-        echo "请输入您的下载带宽（单位：Mbps）："
-        read BANDWIDTH_DOWNLOAD
-        echo "请输入您的上传带宽（单位：Mbps）："
-        read BANDWIDTH_UPLOAD
-        echo "请输入您的存储（单位：MB）："
-        read STORAGE
-
-        # 校验输入是否为数字
-        if [[ ! "$BANDWIDTH_DOWNLOAD" =~ ^[0-9]+$ || ! "$BANDWIDTH_UPLOAD" =~ ^[0-9]+$ || ! "$STORAGE" =~ ^[0-9]+$ ]]; then
-            echo "请输入有效的数字，请重新输入带宽和存储。"
-        else
-            break
-        fi
-    done
-
-    # 将输入的带宽和存储乘以1000
-    BANDWIDTH_DOWNLOAD=$((BANDWIDTH_DOWNLOAD * 1000))
-    BANDWIDTH_UPLOAD=$((BANDWIDTH_UPLOAD * 1000))
-    STORAGE=$((STORAGE * 1000))
-}
-
-# 下载并安装节点
-download_and_install_node() {
-    echo "正在启动系统更新..."
-    sudo apt update && sudo apt upgrade -y
-    check_command "系统更新"
-
-    echo "检查系统架构..."
-    ARCH=$(uname -m)
-    if [[ "$ARCH" == "x86_64" ]]; then
-        CLIENT_URL="https://cdn.app.multiple.cc/client/linux/x64/multipleforlinux.tar"
-    elif [[ "$ARCH" == "aarch64" ]]; then
-        CLIENT_URL="https://cdn.app.multiple.cc/client/linux/arm64/multipleforlinux.tar"
-    else
-        echo "不支持的系统架构: $ARCH"
+# 检查命令是否执行成功
+check_command() {
+    if [ $? -ne 0 ]; then
+        echo "错误: $1 失败"
         exit 1
+    else
+        echo "$1 成功"
     fi
-
-    echo "正在从 $CLIENT_URL 下载客户端..."
-    wget $CLIENT_URL -O multipleforlinux.tar
-    check_command "下载客户端"
-
-    echo "正在解压文件..."
-    tar -xvf multipleforlinux.tar
-    check_command "解压客户端"
-
-    cd multipleforlinux
-
-    echo "正在授予权限..."
-    chmod +x ./multiple-cli ./multiple-node
-    check_command "授予执行权限"
-
-    echo "正在将目录添加到系统路径..."
-    echo "PATH=\$PATH:$(pwd)" >> ~/.bash_profile
-    source ~/.bash_profile
-
-    echo "正在设置权限..."
-    chmod -R 777 $(pwd)
 }
 
-# 启动节点并绑定账户
-start_node_and_bind_account() {
-    echo "正在启动 multiple-node..."
-    nohup ./multiple-node > output.log 2>&1 &
-    check_command "启动 multiple-node"
+# 步骤 1: 清理旧进程和文件
+clean_up
 
-    echo "正在绑定账户，ID: $IDENTIFIER，PIN: $PIN..."
-    multiple-cli bind --bandwidth-download $BANDWIDTH_DOWNLOAD --identifier $IDENTIFIER --pin $PIN --storage $STORAGE --bandwidth-upload $BANDWIDTH_UPLOAD
-    check_command "绑定账户"
-}
+# 步骤 2: 安装 multiple-cli
+echo "步骤 1: 安装 multiple-cli"
+wget https://mdeck-download.s3.us-east-1.amazonaws.com/client/linux/install.sh
+source ./install.sh
+check_command "安装 multiple-cli"
 
-# 询问用户是否要停止现有的节点并从头开始重新安装
-echo "您是否想停止现有节点并从头开始重新安装？ (yes/no)"
-read RESPONSE
-if [[ "$RESPONSE" == "yes" ]]; then
-    clean_up  # 停止节点并删除旧文件
-    get_user_input  # 获取用户输入
-    download_and_install_node  # 下载并安装节点
-    start_node_and_bind_account  # 启动节点并绑定账户
-else
-    echo "跳过清理和重新安装。"
-    exit 0
-fi
+# 步骤 3: 更新 multiple-cli
+echo "步骤 2: 更新多个 CLI"
+wget https://mdeck-download.s3.us-east-1.amazonaws.com/client/linux/update.sh
+source ./update.sh
+check_command "更新 multiple-cli"
 
-echo "安装成功完成！"
+# 步骤 4: 启动服务
+echo "步骤 3: 启动服务"
+wget https://mdeck-download.s3.us-east-1.amazonaws.com/client/linux/start.sh
+source ./start.sh
+check_command "启动 multiple-cli 服务"
+
+# 步骤 5: 绑定识别码
+# 请替换下面的 U8C73H3T 和 PIN 码为你自己的
+echo "步骤 4: 绑定识别码"
+multiple-cli bind --bandwidth-download 200000 --identifier U8C73H3T --pin 535152 --storage 20000 --bandwidth-upload 200000
+check_command "绑定识别码"
+
+echo "安装和配置完成"
