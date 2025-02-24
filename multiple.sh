@@ -59,7 +59,7 @@ check_command "启动 multiple-cli 服务"
 # 步骤 5: 绑定识别码
 # 请替换下面的 U8C73H3T 和 PIN 码为你自己的
 echo "步骤 4: 绑定识别码"
-multiple-cli bind --bandwidth-download 200000 --identifier U8C73H3T --pin 535152 --storage 20000 --bandwidth-upload 200000
+multiple-cli bind --bandwidth-download 2000 --identifier U8C73H3T --pin 535152 --storage 200 --bandwidth-upload 2000
 check_command "绑定识别码"
 
 echo "安装和配置完成"
