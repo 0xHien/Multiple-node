@@ -19,7 +19,7 @@ clean_up() {
     fi
 
     echo "删除旧的安装文件..."
-    rm -rf multipleforlinux multipleforlinux.tar
+    rm -rf multipleforlinux multipleforlinux.tar install.sh
     check_command "删除旧文件"
 
     echo "节点已停止，旧文件已删除。"
